@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  email       String   @unique
+  phone       String
+  password    String
+  role        Role     // Enum: LANDOWNER, TENANT, ADMIN, AGENT
+  properties  Property[] @relation("PropertyOwner")
+  rentals     Rental[] @relation("RentalTenant")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  LANDOWNER
+  TENANT
+  ADMIN
+  AGENT
+}
+
+
+model Property {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  location     Location   // Embedded object for coordinates/address
+  price        Float
+  type         PropertyType // Enum: RESIDENTIAL, COMMERCIAL, AGRICULTURAL
+  ownerId      String     @db.ObjectId
+  owner        User       @relation("PropertyOwner", fields: [ownerId], references: [id])
+  rentals      Rental[]
+  documents    Document[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+  AGRICULTURAL
+}
+
+type Location {
+  latitude  Float
+  longitude Float
+  address   String
+}
+
+model Rental {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  propertyId     String    @db.ObjectId
+  property       Property  @relation(fields: [propertyId], references: [id])
+  tenantId       String    @db.ObjectId
+  tenant         User      @relation("RentalTenant", fields: [tenantId], references: [id])
+  startDate      DateTime
+  endDate        DateTime
+  rentAmount     Float
+  paymentStatus  PaymentStatus // Enum: PENDING, PAID, OVERDUE
+  payments       Payment[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+
+model Payment {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  rentalId     String    @db.ObjectId
+  rental       Rental    @relation(fields: [rentalId], references: [id])
+  amount       Float
+  paymentDate  DateTime
+  method       PaymentMethod // Enum: MOBILE_MONEY, CARD, BANK_TRANSFER
+  status       PaymentStatus
+  createdAt    DateTime   @default(now())
+}
+
+enum PaymentMethod {
+  MOBILE_MONEY
+  CARD
+  BANK_TRANSFER
+}
+
+model Document {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  url          String
+  uploadedById String    @db.ObjectId
+  uploadedBy   User      @relation(fields: [uploadedById], references: [id]) // Ensure 'id' is the correct field in 'User'
+  propertyId   String?   @db.ObjectId
+  property     Property? @relation(fields: [propertyId], references: [id]) // Ensure 'id' is the correct field in 'Property'
+  createdAt    DateTime  @default(now())
+}
+
+
+
+
