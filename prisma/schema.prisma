@@ -19,7 +19,8 @@ model User {
   email       String   @unique
   phone       String
   password    String
-  role        Role     // Enum: LANDOWNER, TENANT, ADMIN, AGENT
+  role        Role
+  documents   Document[]     // Enum: LANDOWNER, TENANT, ADMIN, AGENT
   properties  Property[] @relation("PropertyOwner")
   rentals     Rental[] @relation("RentalTenant")
   createdAt   DateTime @default(now())
