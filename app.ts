@@ -1,7 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { connectDB } from './src/config/db.ts';
+import { connectDB } from './src/config/db';
 // import userRoutes from './routes/userRoutes';
 // import propertyRoutes from './routes/propertyRoutes';
 
